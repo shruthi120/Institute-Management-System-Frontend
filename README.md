@@ -10,11 +10,15 @@ git clone https://github.com/shruthi120/Institute-Management-System-Frontend.git
 3.Checkout to branch
 git checkout dev
 
+git status (all modified files will be in red)
+
 4.git add .
+
+git status (added files will be in green)
 
 5.git commit -m "Your message here"
 
 6.Push your branch to remote
-git push origin dev
+git push 
 
 7.If link was shown in the last step, click on it and create a PR. Else, open the repo manually in browser and create a PR
