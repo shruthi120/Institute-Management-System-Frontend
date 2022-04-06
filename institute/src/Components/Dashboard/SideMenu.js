@@ -1,52 +1,60 @@
-import React from 'react';
+import { useState } from "react";
+import { AiOutlineMenu } from "react-icons/ai";
+import { FaGem, FaHeart, FaUser,FaRegCalendar,FaUserFriends, FaRegEdit,FaLayerGroup,FaGripLinesVertical,FaChalkboardTeacher,FaPencilAlt } from "react-icons/fa";
 import logo from '../../assets/Logo/logo.ico';
-import Table1 from '../Dashboard/Table1';
 import {
-  CDBSidebar,
-  CDBSidebarContent,
-  CDBSidebarHeader,
-  CDBSidebarMenu,
-  CDBSidebarMenuItem,
-} from 'cdbreact';
-import { NavLink } from 'react-router-dom';
-
-const Sidebar = () => {
-  return (<div style={{ display: 'flex', height: '100vh', overflow: 'scroll initial' }}>
-  <CDBSidebar textColor="#fff" backgroundColor="#333">
-    <CDBSidebarHeader prefix={<i className="fa fa-bars fa-large"></i>}>
-      <a href="/" className="text-decoration-none" style={{ color: 'inherit' }}>
-      <img classname = "logo" src={logo} alt="Logo" style={{height : '40px', width: '50px',paddingLeft: '3px',paddingRight: '1px',marginTop: '0px'}} />
-           Institute
-      </a>
-    </CDBSidebarHeader>
-
-    <CDBSidebarContent className="sidebar-content">
-      <CDBSidebarMenu>
-        <NavLink exact to="/Admin" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon="user">Admin</CDBSidebarMenuItem>
-        </NavLink>
-        <NavLink exact to="/Marks" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon= "bi bi-vr">Marks</CDBSidebarMenuItem>
-        </NavLink>
-        <NavLink exact to="/StudentList" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon="bi bi-people-fill">StudentList</CDBSidebarMenuItem>
-        </NavLink>
-        <NavLink exact to="/Subject" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon="bi bi-book-half">Subject</CDBSidebarMenuItem>
-        </NavLink>
-        <NavLink exact to="/Attendance" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon="bi bi-journal-check">Attendance</CDBSidebarMenuItem>
-        </NavLink>
-        <NavLink exact to="/TimeTable" activeClassName="activeClicked">
-          <CDBSidebarMenuItem icon="bi bi-calendar">TimeTable</CDBSidebarMenuItem>
-        </NavLink>
-      </CDBSidebarMenu>
-    </CDBSidebarContent>
-  </CDBSidebar>
-  {/* <button type="button" class=".btn-dark" style={{backgroundColor: '#ff0000', marginLeft: '25px',marginTop: '10px',paddingTop:'5px',paddingRight: '50px',paddingLeft: '50px',paddingBottom: '5px', border: 'none'}}>Logout</button> */}
-</div>
-);
+  Menu,
+  MenuItem,
+  ProSidebar,
+  SidebarHeader,
+  SubMenu,
+} from "react-pro-sidebar";
+import "react-pro-sidebar/dist/css/styles.css";
+import { Link } from "react-router-dom";
+const SideNavigation = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  // added styles 
+  const styles = {
+    sideBarHeight: {
+      height: "100vh",
+    },
+    menuIcon: {
+      float: "right",
+      margin: "10px",
+    },
+  };
+  const onClickMenuIcon = () => {
+    setCollapsed(!collapsed);
+  };
+  return (
+  <div style={{ display: 'flex', height: '100vh', overflow: 'scroll initial' }}>
+    <ProSidebar style={styles.sideBarHeight}  collapsed={collapsed} >
+      <SidebarHeader>
+      {/* <a href="/" className="text-decoration-none" style={{ color: 'inherit' }}>
+      <img classname = "logo" src={logo} alt="Logo" style={{height : '40px', width: '50px',paddingLeft: '3px',paddingRight: '1px',marginTop: '10px',marginBottom: '10px'}} />
+            Institute
+      </a> */}
+        <div style={styles.menuIcon} onClick={onClickMenuIcon}>
+          <AiOutlineMenu style={{fontSize: '150%'}}/>
+        </div>
+      </SidebarHeader>
+      <Menu iconShape="square">
+        <MenuItem icon={<FaUser/>}>Admin</MenuItem>
+        <SubMenu title="Branch" icon={<FaGripLinesVertical/>}>
+          <MenuItem>M1</MenuItem>
+          <MenuItem>M2</MenuItem>
+          <MenuItem>E1</MenuItem>
+          <MenuItem>E2</MenuItem>
+        </SubMenu>
+        <MenuItem icon={<FaUserFriends/>}>StudentList</MenuItem>
+        <MenuItem icon={<FaLayerGroup />}>Subject</MenuItem>
+        <MenuItem icon={<FaChalkboardTeacher/>}>Staff</MenuItem>
+        <MenuItem icon={<FaPencilAlt />}>Marks</MenuItem>
+        <MenuItem icon={<FaRegEdit/>}>Attendance</MenuItem>
+        <MenuItem icon={<FaRegCalendar/>}>TimeTable</MenuItem>
+      </Menu>
+    </ProSidebar>
+    </div>
+  );
 };
-
-
-export default Sidebar;
+export default SideNavigation;
