@@ -4,7 +4,13 @@ import user from "../../assets/Logo/user.png";
 import "../../Styles/header.css";
 import '../../Styles/login.css'
 class Tophead extends Component {
-  
+  state = {
+    modal: false,
+    username:
+      sessionStorage.getItem("firstname") +
+      " " +
+      sessionStorage.getItem("lastname"),
+  };
   toggle = () => {
     this.setState({ modal: !this.state.modal });
   };
@@ -12,7 +18,7 @@ class Tophead extends Component {
     return (
       <div style = {{width: '88%'}} class="nav">
         <div class="nav-header">
-          <div class="nav-title">Attendance</div>
+          <div class="nav-title">{this.props.name}</div>
         </div>
 
         <div class="nav-links" style={{ marginRight: "12%" }}>
@@ -27,12 +33,12 @@ class Tophead extends Component {
             <img src={user} className="profile" />
           </a>
           <a class="dropdown" style={{ float: "center" }}>
-           Admin
+          {/* {this.state.username} */}Admin
             <div
               class="dropdown-content"
               style={{ left: "0", boxShadow: "-1px 2px 10px 3px #e1e1e1" }}
             >
-              <a href="/" style={{}}>
+              <a href="/profile" style={{}}>
                 View Profile
               </a>
 

@@ -5,57 +5,40 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { Button, Form, FormGroup, Label, Input } from "reactstrap";
 import Tophead from "./../Dashboard/Tophead.js";
 import Sidebar from "../Dashboard/SideMenu";
+import axios from "axios";
+import ReactPaginate from "react-paginate";
+import { AiOutlineCaretLeft, AiOutlineCaretRight } from "react-icons/ai";
+import { Dropdown } from "react-bootstrap";
 
-const user = [
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-  {
-    first_name: "deepa",
-    phone_number: "123456789",
-  },
-];
 class Attendance extends Component {
   constructor(props) {
     super(props);
     this.state = {
       modal: false,
-      present: "P",
-      present1: "P",
-      present2: "P",
-      present3: "P",
-      present4: "P",
-      absent: "A",
-      absent1: "A",
-      absent2: "A",
-      absent3: "A",
-      absent4: "A",
+      present: false,
+      absent: false,
       filtermodal: false,
-      firstname: "",
-      phno: "",
+      refreshtoken: sessionStorage.getItem("refreshtoken"),
+      accesstoken: sessionStorage.getItem("accesstoken"),
+      lastname: "",
+      id: "",
+      first_name: '',
+      last_name: " ",
+      phone_number: '',
+      email: '',
+      date: '',
+      batch: '',
+      student: [],
+      offset: 0,
+      currentpage: 0,
+      perPage: 5,
       filter_firstname: "",
-      firstnameErr: "",
-      phnoErr: "",
-      date: ""
-    };
+      nameError: "",
+      emailError: "",
+      phoneError: ""
 
+    };
+    this.handlePageClick = this.handlePageClick.bind(this);
   }
   toggle = () => {
     const { modal } = this.state;
@@ -65,220 +48,324 @@ class Attendance extends Component {
     this.setState({ filtermodal: !this.state.filtermodal });
   };
   date = () => {
-    this.setState({date: this.state.date})
+    this.setState({ date: this.state.date })
     console.log(this.state.date)
   }
   present = () => {
-    this.setState({ present: "Present" });
-  };
-  present1 = () => {
-    this.setState({ present1: "Present" });
-  };
-  present2 = () => {
-    this.setState({ present2: "Present" });
-  };
-  present3 = () => {
-    this.setState({ present3: "Present" });
-  };
-  present4 = () => {
-    this.setState({ present4: "Present" });
-  };
+    this.setState({ present: !this.state.present });
+    alert("you marked present");
+  }
   absent = () => {
-    this.setState({ absent: "Absent" });
+    this.setState({ absent: !this.state.absent });
+    // alert("you marked Absent");
+  }
+  handlePageClick = (e) => {
+    const selectedPage = e.selected;
+    const offset = selectedPage * this.state.perPage;
+
+    this.setState(
+      {
+        currentpage: selectedPage,
+        offset: offset,
+      },
+      () => {
+        this.getstudents();
+      }
+    );
   };
-  absent1 = () => {
-    this.setState({ absent1: "Absent" });
+  renewaccesstoken = async () => {
+    const renewheaders = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${this.state.refreshtoken}`,
+    };
+    const renew = await axios
+      .get(`http://localhost:3002/auth/renewAccessToken`, {
+        headers: renewheaders,
+      })
+      .then((renew) => {
+        sessionStorage.setItem("accesstoken", renew.data.accessToken);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
-  absent2 = () => {
-    this.setState({ absent2: "Absent" });
+  getstudents = async () => {
+    const res = axios
+      .get(`http://localhost:3002/students/all`)
+      .then((res) => {
+        console.log(res);
+        // this.setState({
+        //     student: res.data.students,
+
+        //   });
+        const slice = res.data.students.slice(
+          this.state.offset,
+          this.state.offset + this.state.perPage
+        );
+        this.setState({
+          pageCount: Math.ceil(res.data.students.length / this.state.perPage),
+          students: slice,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
-  absent3 = () => {
-    this.setState({ absent3: "Absent" });
+  handleSubmit = async (data) => {
+    const value = {
+      batch: this.state.batch,
+      date: this.state.date,
+      email: this.state.email,
+      first_name: this.state.first_name,
+      last_name: this.state.last_name,
+      phone_number: this.state.phone_number
+    };
+    console.log(value);
+    // eslint-disable-next-line
+    const res = await axios
+      .post(`http://localhost:3002/students/create`, value)
+      .then((res) => {
+        console.log("CREATE", res);
+        alert("Student Created Successfully!");
+        this.toggle();
+        this.getstudents();
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
-  absent4 = () => {
-    this.setState({ absent4: "Absent" });
+
+  absentmail = async (DataID) => {
+
+    if (true) {
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.state.token}`,
+      };
+
+      const res = await axios
+        // .post(`http://localhost:3002/students/${DataID}`, { headers: headers })
+        .post(`http://localhost:3002/students/1`, { headers: headers })
+        .then((res) => {
+          alert("Mail sent!");
+          console.log(res);
+
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
+  handleChange = event => {
+    const isCheckbox = event.target.type === "checkbox";
+    this.setState({
+      [event.target.name]: isCheckbox
+        ? event.target.checked
+        : event.target.value
+    });
+  };
+
+  validate = () => {
+    let nameError = "";
+    let emailError = "";
+    let phoneError = "";
+
+    if (!this.state.name) {
+      nameError = "name cannot be blank";
+    }
+
+    if (!this.state.email.includes("@")) {
+      emailError = "invalid email";
+    }
+
+    if (emailError || nameError) {
+      this.setState({ emailError, nameError });
+      return false;
+    }
+    return true;
+  };
+
+  handleSubmitform = event => {
+    event.preventDefault();
+    const isValid = this.validate();
+    if (isValid) {
+      console.log(this.state);
+      // clear form
+      this.setState(this.state);
+    }
+  };
+  componentDidMount() {
+    setTimeout(this.renewaccesstoken(), 10000);
+    this.getstudents();
+
+  }
   render() {
     return (
-      <div className="align-row">
-        <Sidebar />
-        <div>
-          <div className="tophead">
-            <Tophead name="Attendance" />
-          </div>
-          <br></br>
-          <div className="align-row items">
-            <button className="filterbtn" onClick={this.togglefilter}>
-              Filter
-            </button>
-            <button className="adduserbtn" onClick={this.toggle}>
-              Create Student
-            </button>
-            <Input onClick={this.date}
-              className="calender"
-              type="date"
-              value={this.state.date}
-              onChange={(e) =>
-                this.setState({
-                  date: e.target.value,
-                })
-              }
-            />
-            <br />
-          </div>
+      <div className="box" ref={(el) => (this.componentRef = el)}>
+        <Table
+          striped
+          bordered
+          hover
+          style={{ marginTop: "5%", width: "130%", marginRight: '20%', marginLeft: "14%" }}
+        >
+          <thead>
+            <tr>
+              <th style={{ width: '5%' }}>ID</th>
+              <th style={{ width: '5%' }}>Name</th>
 
-          <div className="box" ref={(el) => (this.componentRef = el)}>
-            <Table
-              striped
-              bordered
-              hover
-              style={{ marginTop: "5%", width: "80%", marginRight: '90%'}}
-            >
-              <thead>
-                <tr>
-                  <th style={{width: '5%'}}>ID</th>
-                  <th style={{width: '5%'}}>Name</th>
+              {/* <th style={{width: '5%'}}>Date</th> */}
 
-                  <th style={{width: '5%'}}>Date</th>
+              <th style={{ width: '5%' }}>Attendance</th>
+              {/* <th style={{width: '5%'}}>Status</th> */}
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.students &&
+              this.state.students.map((data, index) => (
+                <tr key={data._id}>
+                  <td>{data._id}</td>
+                  <td>{data.first_name}</td>
 
-                  <th style={{width: '5%'}}>Attendance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>Anu</td>
-
-                  <td>{this.state.date}</td>
+                  {/* <td>{this.state.date}</td> */}
 
                   <td>
                     <button class="btn btn-success" onClick={this.present}>
-                      {this.state.present}
+                      {/* {this.state.present} */}
+                      P
                     </button>
                     <button
                       class="btn btn-danger"
                       style={{ marginLeft: "2%" }}
-                      onClick={this.absent}
+                      onClick={() => {
+                        this.absent();
+                        this.absentmail(this.state.id);
+
+                      }}
                     >
-                      {this.state.absent}
+                      A
+                      {/* {this.state.absent} */}
                     </button>
                   </td>
+                  {/* <td>present</td> */}
                 </tr>
+              ))}
+          </tbody>
+        </Table>
+        <div style={{ marginLeft: "14%", marginTop: "23px" }}>
+          <ReactPaginate
+            previousLabel={<AiOutlineCaretLeft />}
+            nextLabel={<AiOutlineCaretRight />}
+            breakLabel={"..."}
+            breakClassName={"break-me"}
+            pageCount={this.state.pageCount}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={this.handlePageClick}
+            containerClassName={"pagination"}
+            subContainerClassName={"pages pagination"}
+            activeClassName={"active"}
+          />
+        </div>
 
-                <tr>
-                  <td>2</td>
-                  <td>Bhuvana</td>
 
-                  <td>{this.state.date}</td>
-
-                  <td>
-                    <button class="btn btn-success" onClick={this.present1}>
-                      {this.state.present1}
-                    </button>
-                    <button
-                      class="btn btn-danger"
-                      style={{ marginLeft: "2%" }}
-                      onClick={this.absent1}
-                    >
-                      {this.state.absent1}
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td>Dhanya</td>
-
-                  <td>{this.state.date}</td>
-
-                  <td>
-                    <button class="btn btn-success" onClick={this.present2}>
-                      {this.state.present2}
-                    </button>
-                    <button
-                      class="btn btn-danger"
-                      style={{ marginLeft: "2%" }}
-                      onClick={this.absent2}
-                    >
-                      {this.state.absent2}
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>4</td>
-                  <td>Hanaya</td>
-
-                  <td>{this.state.date}</td>
-
-                  <td>
-                    <button class="btn btn-success" onClick={this.present3}>
-                      {this.state.present3}
-                    </button>
-                    <button
-                      class="btn btn-danger"
-                      style={{ marginLeft: "2%" }}
-                      onClick={this.absent3}
-                    >
-                      {this.state.absent3}
-                    </button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>5</td>
-                  <td>Abinaya</td>
-
-                  <td>{this.state.date}</td>
-
-                  <td>
-                    <button class="btn btn-success" onClick={this.present4}>
-                      {this.state.present4}
-                    </button>
-                    <button
-                      class="btn btn-danger"
-                      style={{ marginLeft: "2%" }}
-                      onClick={this.absent4}
-                    >
-                      {this.state.absent4}
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </Table>
-          </div>
-
-          {this.state.modal && (
+        {
+          this.state.modal && (
             <Modal
-              style={{ width: "30%" }}
+              style={{ width: "50%", height: "90%" }}
               isOpen={this.state.modal}
               onHide={this.toggle}
               onExit={this.reset}
               centered
+              animation="false"
+              size="md"
             >
               <ModalHeader toggle={this.toggle}>Create Student</ModalHeader>
-              <ModalBody>
-                <Form>
+              <ModalBody style={{
+                "max-height": "calc(100vh - 210px)",
+                "overflow-y": "auto",
+              }}>
+                <Form onSubmit={this.handleSubmitform}>
                   <Row>
                     <Col>
                       <FormGroup>
-                        <Label>Name</Label>
+                        <Label>First Name</Label>
+                        <div>
                         <Input
                           type="text"
                           required
-                          value={this.state.firstname}
-                          onChange={(e) =>
-                            this.setState({
-                              firstname: e.target.value,
-                              firstnameErr: "",
-                            })
+                          value={this.state.first_name}
+                          placeholder="Enter first name"
+                          onChange={
+                            this.handleChange
                           }
                         />
-                        <div style={{ fontSize: 16, color: "red" }}>
-                          {this.state.firstnameErr}
-                        </div>
+                        <div style={{ fontSize: 12, color: "red" }}>
+            {this.state.nameError}
+          </div>
+          </div>
+                      </FormGroup>
+                    </Col>
+                    <Col>
+                      <FormGroup>
+                        <Label>Last Name</Label>
+                        <div>
+                        <Input
+                          type="text"
+                          required
+                          value={this.state.last_name}
+                          placeholder="Enter last name"
+                          // onChange={(e) =>
+                          //   this.setState({
+                          //     last_name: e.target.value,
+                          //   })
+                          // }
+                          onChange={this.handleChange}
+                        />
+                        <div style={{ fontSize: 12, color: "red" }}>
+            {this.state.nameError}
+          </div>
+          </div>
                       </FormGroup>
                     </Col>
                   </Row>
                   <br />
-
+                  <Row>
+                    <Col>
+                      <FormGroup>
+                        <Label style={{ paddingRight: '10px' }}>Batch</Label>
+                        <select value={this.state.value} onChange={this.handleChange}>
+                          <option value=""></option>
+                          <option value="M1">M1</option>
+                          <option value="M2">M2</option>
+                          <option value="E1">E1</option>
+                          <option value="E2">E2</option>
+                        </select>
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  <br />
+                  <Row>
+                    <Col>
+                      <FormGroup>
+                        <Label>Email</Label>
+                        <div>
+                        <Input
+                          type="text"
+                          required
+                          value={this.state.email}
+                          placeholder="Enter email address"
+                          onChange={
+                            this.handleChange
+                          }
+                        />
+                        <div style={{ fontSize: 12, color: "red" }}>
+            {this.state.emailError}
+          </div>
+          </div>
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  <br />
                   <Row>
                     <Col>
                       <FormGroup>
@@ -286,17 +373,13 @@ class Attendance extends Component {
                         <Input
                           type="date"
                           required
-                          value={this.state.email}
+                          value={this.state.date}
                           onChange={(e) =>
                             this.setState({
-                              email: e.target.value,
-                              emailErr: "",
+                              date: e.target.value,
                             })
                           }
                         />
-                        <div style={{ fontSize: 16, color: "red" }}>
-                          {this.state.emailErr}
-                        </div>
                       </FormGroup>
                     </Col>
                   </Row>
@@ -304,25 +387,18 @@ class Attendance extends Component {
                   <Row>
                     <Col>
                       <FormGroup>
-                        <Label>Mobile Number</Label>
-                        <Row>
-                          <Col>
-                            <Input
-                              type="text"
-                              required
-                              value={this.state.phno}
-                              onChange={(e) =>
-                                this.setState({
-                                  phno: e.target.value,
-                                  phnoErr: "",
-                                })
-                              }
-                            />
-                          </Col>
-                        </Row>
-                        <div style={{ fontSize: 16, color: "red" }}>
-                          {this.state.phnoErr}
-                        </div>
+                        <Label>Phone Number</Label>
+                        <Input
+                          type="text"
+                          required
+                          value={this.state.phone_number}
+                          placeholder="Enter phone number"
+                          onChange={(e) =>
+                            this.setState({
+                              phone_number: e.target.value,
+                            })
+                          }
+                        />
                       </FormGroup>
                     </Col>
                   </Row>
@@ -344,72 +420,17 @@ class Attendance extends Component {
                   Cancel
                 </Button>
                 <Button
-                  style={{ backgroundColor: "black", color: "white" }}
+                  // style={{ backgroundColor: "black", color: "white" }}
+                  className="btn btn-dark"
                   onClick={this.handleSubmit}
                 >
-                  Create
+                  Save
                 </Button>
               </ModalFooter>
             </Modal>
-          )}
-
-          {this.state.filtermodal && (
-            <Modal
-              style={{ width: "50%" }}
-              isOpen={this.state.filtermodal}
-              onHide={this.togglefilter}
-              onExit={this.reset}
-              centered
-            >
-              <ModalHeader toggle={this.togglefilter}>Filter</ModalHeader>
-              <ModalBody>
-                <Form>
-                  <Row>
-                    <Col>
-                      <FormGroup>
-                        <Label>First Name</Label>
-                        <Input
-                          type="text"
-                          required
-                          value={this.state.filter_firstname}
-                          placeholder="Enter first name"
-                          onChange={(e) =>
-                            this.setState({
-                              filter_firstname: e.target.value,
-                            })
-                          }
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  <br />
-                </Form>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  style={{
-                    border: "1px solid grey",
-                    color: "black",
-                    backgroundColor: "#fff",
-                  }}
-                  onClick={() => {
-                    this.togglefilter();
-                    this.reset();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  style={{ backgroundColor: "black", color: "white" }}
-                  onClick={this.filterdata}
-                >
-                  Apply
-                </Button>
-              </ModalFooter>
-            </Modal>
-          )}
-        </div>
-      </div>
+          )
+        }
+      </div >
     );
   }
 }
